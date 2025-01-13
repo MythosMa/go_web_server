@@ -3,14 +3,15 @@ package server
 import (
 	"log"
 	"net/http"
-
-	"go_web_server/config"
+	"os"
 )
 
 func StartHttpServer() {
+
 	http.HandleFunc("/", HandleRoot)
 
-	err := http.ListenAndServe(config.ServerPort, nil)
+	port := os.Getenv("PORT")
+	err := http.ListenAndServe("0.0.0.0:"+port, nil)
 
 	if err != nil {
 		log.Fatal("Server Error:", err)
