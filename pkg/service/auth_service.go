@@ -15,7 +15,7 @@ func RegisterUser(username, password, email string) (string, error) {
 		return "服务器错误", err
 	}
 
-	_, err = db.DB.Exec("INSERT INTO users (username, password, avatar) VALUES (?, ?, ?)", username, string(hashedPassword), email)
+	_, err = db.DB.Exec("INSERT INTO users (username, password, email) VALUES (?, ?, ?)", username, string(hashedPassword), email)
 
 	if err != nil {
 		log.Println(err)

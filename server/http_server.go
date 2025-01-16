@@ -4,11 +4,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"go_web_server/pkg/handler/auth"
 )
 
 func StartHttpServer() {
 
 	http.HandleFunc("/", HandleRoot)
+	http.HandleFunc("/register", auth.RegisterHandler)
 
 	port := os.Getenv("PORT")
 	err := http.ListenAndServe("0.0.0.0:"+port, nil)
