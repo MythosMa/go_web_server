@@ -1,24 +1,32 @@
 package auth
 
 import (
+	"encoding/json"
 	"net/http"
 
+	"go_web_server/pkg/model"
+	"go_web_server/pkg/response"
 	"go_web_server/pkg/service"
 )
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
-		username := r.FormValue("username")
-		password := r.FormValue("password")
-		email := r.FormValue("email")
+		var user model.User
 
-		msg, err := service.RegisterUser(username, password, email)
-
-		if err != nil {
-			http.Error(w, msg, http.StatusInternalServerError)
+		if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+			response.Error(w, http.StatusBadRequest, "请求参数错误")
 			return
 		}
+
+		createdUser, msg, err := service.RegisterUser(user.Username, user.Password, user.Email)
+
+		if err != nil {
+			response.Error(w, http.StatusInternalServerError, msg)
+			return
+		}
+
+		response.Success(w, createdUser.ToUserResponse(), msg)
 	} else {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		response.Error(w, http.StatusMethodNotAllowed, "请求方法错误")
 	}
 }
