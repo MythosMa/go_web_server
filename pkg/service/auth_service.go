@@ -1,6 +1,8 @@
 package service
 
 import (
+	"database/sql"
+	"errors"
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
@@ -52,4 +54,35 @@ func RegisterUser(username, password, email string) (*model.User, string, error)
 	}
 
 	return user, "用户注册成功", nil
+}
+
+func Login(username, password string) (*model.User, string, error) {
+	var user model.User
+	var hashedPassword string
+
+	tx, err := db.DB.Begin()
+	if err != nil {
+		return nil, "服务器错误", err
+	}
+	defer tx.Rollback()
+
+	err = tx.QueryRow("SELECT id, username, password, email FROM users WHERE username = ?", username).Scan(&user.ID, &user.Username, &hashedPassword, &user.Email)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, "用户名或密码错误", err
+		}
+		return nil, "服务器错误", err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+
+	if err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return nil, "用户名或密码错误", err
+		}
+		return nil, "服务器错误", err
+	}
+
+	return &user, "登录成功", nil
 }
