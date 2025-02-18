@@ -2,6 +2,7 @@ package response
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -43,6 +44,9 @@ func Success(w http.ResponseWriter, data interface{}, message ...string) {
 	JSON(w, http.StatusOK, msg, data)
 }
 
-func Error(w http.ResponseWriter, code int, message string) {
+func Error(w http.ResponseWriter, code int, message string, err error) {
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
 	JSON(w, code, message, nil)
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"go_web_server/pkg/handler/auth"
+	subweb "go_web_server/pkg/handler/subWeb"
 	"go_web_server/pkg/handler/test"
 	"go_web_server/pkg/middleware"
 )
@@ -13,8 +14,10 @@ import (
 func StartHttpServer() {
 
 	http.HandleFunc("/", HandleRoot)
+	http.HandleFunc("/subWeb", subweb.GetSubWebHandler)
 	http.HandleFunc("/register", auth.RegisterHandler)
 	http.HandleFunc("/login", auth.LoginHandler)
+	http.Handle("/checkToken", middleware.AuthMiddleware(http.HandlerFunc(auth.CheckTokenHandler)))
 	http.Handle("/test", middleware.AuthMiddleware(http.HandlerFunc(test.TestHandler)))
 
 	port := os.Getenv("PORT")

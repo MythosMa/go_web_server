@@ -17,13 +17,13 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHandler := r.Header.Get("Authorization")
 		if authHandler == "" {
-			response.Error(w, http.StatusUnauthorized, "请登录")
+			response.Error(w, http.StatusUnauthorized, "请登录", nil)
 			return
 		}
 
 		parts := strings.Split(authHandler, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			response.Error(w, http.StatusUnauthorized, "无效token")
+			response.Error(w, http.StatusUnauthorized, "无效token", nil)
 			return
 		}
 
@@ -32,7 +32,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		claims, err := jwt.ParseToken(tokenString)
 
 		if err != nil {
-			response.Error(w, http.StatusUnauthorized, "无效token")
+			response.Error(w, http.StatusUnauthorized, "无效token", nil)
 			return
 		}
 

@@ -26,21 +26,21 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		var info LoginRequestInfo
 
 		if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
-			response.Error(w, http.StatusBadRequest, "请求参数错误")
+			response.Error(w, http.StatusBadRequest, "请求参数错误", err)
 			return
 		}
 
 		loginUser, msg, err := service.Login(info.Username, info.Password)
 
 		if err != nil {
-			response.Error(w, http.StatusInternalServerError, msg)
+			response.Error(w, http.StatusInternalServerError, msg, err)
 			return
 		}
 
 		token, err := jwt.GenerateToken(loginUser.ID, loginUser.Username)
 
 		if err != nil {
-			response.Error(w, http.StatusInternalServerError, "服务器错误")
+			response.Error(w, http.StatusInternalServerError, "服务器错误", err)
 			return
 		}
 
@@ -52,6 +52,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 		response.Success(w, loginResponse, msg)
 	} else {
-		response.Error(w, http.StatusMethodNotAllowed, "请求方法错误")
+		response.Error(w, http.StatusMethodNotAllowed, "请求方法错误", nil)
 	}
 }
