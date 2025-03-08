@@ -1,9 +1,12 @@
 package service
 
 import (
+	"database/sql"
+	"errors"
 	"strings"
 
 	"go_web_server/db"
+	"go_web_server/pkg/model"
 )
 
 func CreateMarkdownRecord(title string, slug string, content string) (int64, string, error) {
@@ -35,10 +38,10 @@ func CreateMarkdownRecord(title string, slug string, content string) (int64, str
 	return id, "新增成功", nil
 }
 
-func UpdateMarkdownRecord(id int, title string, slug string, content string) (string, error) {
+func UpdateMarkdownRecord(id int64, title string, slug string, content string) (int64, string, error) {
 	tx, err := db.DB.Begin()
 	if err != nil {
-		return "服务器错误", err
+		return id, "服务器错误", err
 	}
 	defer tx.Rollback()
 
@@ -46,20 +49,45 @@ func UpdateMarkdownRecord(id int, title string, slug string, content string) (st
 
 	if err != nil {
 		if strings.Contains(err.Error(), "Duplicate entry") {
-			return "slug已存在", err
+			return id, "slug已存在", err
 		}
-		return "服务器错误", err
+		return id, "服务器错误", err
 	}
 
 	rowsAffected, err := result.RowsAffected()
 
 	if err != nil {
-		return "服务器错误", err
+		return id, "服务器错误", err
 	}
 
 	if rowsAffected == 0 {
-		return "记录不存在", nil
+		return id, "记录不存在", nil
 	}
 
-	return "更新成功", nil
+	if err = tx.Commit(); err != nil {
+		return 0, "服务器错误", err
+	}
+
+	return id, "更新成功", nil
+}
+
+func GetMarkdownRecord(id int64) (*model.MarkdownFile, string, error) {
+	var markdown model.MarkdownFile
+
+	tx, err := db.DB.Begin()
+	if err != nil {
+		return nil, "服务器错误", err
+	}
+	defer tx.Rollback()
+
+	err = tx.QueryRow("SELECT id, title, slug, content, created_at, updated_at FROM articles WHERE id = ?", id).Scan(&markdown.ID, &markdown.Title, &markdown.Slug, &markdown.Content, &markdown.CreatedAt, &markdown.UpdatedAt)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, "数据不存在", err
+		}
+		return nil, "服务器错误", err
+	}
+
+	return &markdown, "查询成功", nil
 }

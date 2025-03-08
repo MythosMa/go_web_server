@@ -35,9 +35,5 @@ func GetSubWeb() ([]model.SubWeb, string, error) {
 		subWebs = append(subWebs, subWeb)
 	}
 
-	if err != nil {
-		return nil, "服务器错误", err
-	}
-
 	return subWebs, "获取成功", nil
 }
